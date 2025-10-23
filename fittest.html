@@ -3,16 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Fitness Analyzer Web</title>
+<title>Fitness Analyzer Web Plus</title>
 <link rel="stylesheet" href="style2.css">
 
-<!-- TensorFlow + Pose Detection -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@0.0.7"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.20.0"></script>
+<!-- Load TensorFlow & Pose Detection as modules -->
+<script type="module">
+  import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0";
+  import * as poseDetection from "https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@0.0.7";
+  window.tf = tf;
+  window.poseDetection = poseDetection;
+</script>
 
-<!-- WebLLM runtime -->
-<script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.48/dist/web-llm.min.js"></script>
+<!-- Load WebLLM safely -->
+<script type="module">
+  import * as webllm from "https://esm.run/@mlc-ai/web-llm@0.2.48";
+  window.webllm = webllm;
+</script>
 </head>
 
 <body>
