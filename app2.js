@@ -1,10 +1,14 @@
+// Make sure all global libraries are available
+const poseDetection = window.poseDetection;
+const tf = window.tf;
+const webllm = window.webllm;
+
 let detector, llm;
 
 window.addEventListener("DOMContentLoaded", async () => {
-  await tf.setBackend("webgl");
-  await tf.ready();
-
   try {
+    await tf.setBackend("webgl");
+    await tf.ready();
     detector = await poseDetection.createDetector(
       poseDetection.SupportedModels.MoveNet,
       { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
@@ -15,15 +19,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    llm = await window.webllm.createWebWorkerEngine({
+    llm = await webllm.CreateWebWorkerEngine({
       model: "TinyLlama-1.1B-Chat-v1.0-q4f16_1"
     });
-    console.log("🧠 WebLLM model loading...");
+    console.log("🧠 WebLLM model loaded.");
   } catch (e) {
     console.error("❌ WebLLM init failed:", e);
   }
 
-  // UI actions
+  // Button actions
   document.getElementById("analyzeBtn").onclick = analyzeVideo;
   document.getElementById("videoInput").onchange = e => {
     const file = e.target.files[0];
@@ -45,8 +49,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 async function analyzeVideo() {
   const video = document.getElementById("video");
   if (!video.src) return alert("Please select a video first.");
-
-  // Check playback state
   if (video.paused || video.ended) {
     alert("Press Play on the video first, then click Analyze again.");
     return;
@@ -56,7 +58,6 @@ async function analyzeVideo() {
   let poses = [];
 
   try {
-    // Wait one frame to make sure we get a fresh image
     await tf.nextFrame();
     poses = await detector.estimatePoses(video, { flipHorizontal: false });
     console.log("🎯 Detected poses:", poses);
@@ -66,7 +67,7 @@ async function analyzeVideo() {
 
   if (!poses.length || !poses[0].keypoints?.length) {
     document.getElementById("metricsOutput").textContent =
-      "⚠️ No pose detected. Try a brighter or closer video.";
+      "⚠️ No pose detected. Try a brighter, closer video.";
     return;
   }
 
@@ -126,7 +127,7 @@ function jointAngle(a, b, c) {
   return Math.acos(cos) * 180 / Math.PI;
 }
 
-// -------------------- AI & Logging --------------------
+// -------------------- AI + Logging --------------------
 function buildPrompt(m) {
   return `You are a professional movement analyst. Given these metrics:
 - hip_depth_ratio: ${m.hipDepthRatio}
