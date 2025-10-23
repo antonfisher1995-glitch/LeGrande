@@ -5,14 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Fitness Analyzer Web</title>
 <link rel="stylesheet" href="style2.css">
+
+<!-- TensorFlow + Pose Detection -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@0.0.7"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.20.0"></script>
-<script type="module">
-  import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.48";
-  window.webllm = webllm;
-</script>
+
+<!-- WebLLM runtime -->
+<script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.48/dist/web-llm.min.js"></script>
 </head>
+
 <body>
 <header>
   <h1>Fitness Analyzer</h1>
@@ -22,25 +24,30 @@
   <a href="fittest.html">Fit Test</a>
   <p>Real-time Vision &amp; AI Report — Browser Edition</p>
 </header>
+
 <main>
   <section id="videoSection">
     <video id="video" controls playsinline muted></video><br>
     <input type="file" accept="video/*" id="videoInput">
     <button id="analyzeBtn">Analyze</button>
   </section>
+
   <section id="metricsSection">
     <h2>Detected Metrics</h2>
     <pre id="metricsOutput">No analysis yet.</pre>
   </section>
+
   <section id="aiSection">
     <h2>AI Technical Report</h2>
     <pre id="aiOutput">Waiting...</pre>
   </section>
+
   <section id="weblogSection">
     <h2>Weblog</h2>
     <button id="downloadLogs">Download Logs (JSON)</button>
   </section>
 </main>
+
 <script type="module" src="app2.js"></script>
 </body>
 </html>
