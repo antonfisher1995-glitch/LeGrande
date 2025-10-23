@@ -1,0 +1,14 @@
+body {
+  font-family: system-ui, sans-serif;
+  background:#fafafa;
+  margin:0;
+  padding:1em;
+  color:#111;
+}
+header { text-align:center; margin-bottom:1.5em; }
+h1 { margin:0; }
+section { margin-bottom:2em; background:white; padding:1em; border-radius:12px; box-shadow:0 0 6px rgba(0,0,0,0.1); }
+video { width:100%; max-width:480px; border-radius:8px; }
+button { padding:0.5em 1em; margin-top:0.5em; border:none; border-radius:8px; background:#007aff; color:white; cursor:pointer; }
+button:hover { background:#005ecb; }
+pre { background:#f3f3f3; padding:0.5em; border-radius:8px; overflow-x:auto; }
