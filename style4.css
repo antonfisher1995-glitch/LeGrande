@@ -1,0 +1,63 @@
+body {
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #333 0%, #000 100%);
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.slot-machine {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.reel {
+  font-size: 4rem;
+  background: #111;
+  border: 3px solid #555;
+  border-radius: 10px;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px;
+  transition: transform 0.3s;
+}
+
+button {
+  background-color: #ffcc00;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #ffaa00;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 1.5rem;
+}

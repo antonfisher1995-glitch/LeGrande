@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TexUs Web - Encrypted Messaging and Steganography</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        section { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+        input, textarea, select, button { display: block; width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:disabled { background-color: #ccc; }
+        #output, #error { margin-top: 10px; padding: 10px; border: 1px solid #eee; border-radius: 4px; }
+        #error { color: red; }
+        canvas { max-width: 100%; border: 1px solid #ddd; margin-top: 10px; }
+        #qrcode { margin: 10px 0; text-align: center; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 5px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+    <nav>
+    <a href="index.html">Crypto</a>
+    <a href="powerball.html">Powerball</a>
+    <a href="cannabis.html">Cannabis </a>
+          
+           <a href="Religious.html">Religious</a>
+     <a href="SlotMachine.html">Slots</a>
+        
+        <a href="TexUs.html">TexUs</a>
+      <a href="fittest.html">Fit Test</a>
+  </nav>
+  
+    <h1>TexUs Web</h1>
+  
+    <p>This is a static HTML page for encrypting/decrypting messages and hiding/revealing text in images using steganography. Keys are persisted in localStorage.</p>
+
+    <section id="key-management">
+        <h2>Key Management</h2>
+        <p>Your persistent AES-256 key (base64-encoded). If not set, a new one will be generated and saved.</p>
+        <input type="text" id="key" placeholder="Enter or generate key">
+        <button id="generateKey">Generate New Key</button>
+        <button id="saveKey">Save Key</button>
+    </section>
+
+    <section id="qr-sharing">
+        <h2>QR Code Sharing</h2>
+        <p>Enter your email (optional, saved in localStorage):</p>
+        <input type="text" id="email" placeholder="Your email">
+        <button id="saveEmail">Save Email</button>
+        <div id="qrcode"></div>
+        <button id="generateQR">Generate QR Code</button>
+        <p>Generate a QR code containing your email (if set) and key for sharing.</p>
+    </section>
+
+    <section id="friends-management">
+        <h2>Friends Management</h2>
+        <ul id="friendsList"></ul>
+        <h3>Add Friend Manually</h3>
+        <input type="text" id="friendName" placeholder="Friend's Name">
+        <input type="text" id="friendEmail" placeholder="Friend's Email">
+        <input type="text" id="friendKey" placeholder="Friend's AES-256 Key (Base64)">
+        <button id="addFriend">Add Friend</button>
+
+        <h3>Add Friend via QR Paste</h3>
+        <input type="text" id="qrPaste" placeholder="Paste QR text (email|key)">
+        <button id="parseQR">Parse QR Text</button>
+        <div id="friendsError"></div>
+    </section>
+
+    <section id="text-encryption">
+        <h2>Encrypt/Decrypt Text</h2>
+        <select id="recipientSelect">
+            <option value="">Select Recipient (for encryption)</option>
+        </select>
+        <input type="text" id="recipientKey" placeholder="Recipient's Key (or select friend)">
+        <textarea id="plainText" placeholder="Enter plain text to encrypt"></textarea>
+        <button id="encryptText" disabled>Encrypt Text</button>
+        <textarea id="encryptedText" placeholder="Enter encrypted text (base64) to decrypt"></textarea>
+        <button id="decryptText" disabled>Decrypt Text</button>
+        <div id="textOutput"></div>
+        <div id="textError"></div>
+    </section>
+
+    <section id="image-steganography">
+        <h2>Hide/Reveal Text in Image</h2>
+        <p>Select an image and enter text to hide (will be encrypted with your key).</p>
+        <input type="file" id="imageInput" accept="image/*">
+        <textarea id="hideText" placeholder="Text to hide in image"></textarea>
+        <button id="encodeImage" disabled>Encode Image</button>
+        <canvas id="encodedCanvas"></canvas>
+        <a id="downloadEncoded" style="display: none;">Download Encoded Image</a>
+
+        <p>Select an encoded image to reveal hidden text.</p>
+        <select id="senderSelect">
+            <option value="">Select Sender (for decoding)</option>
+        </select>
+        <input type="text" id="senderKey" placeholder="Sender's Key (or select friend)">
+        <input type="file" id="decodeImageInput" accept="image/*">
+        <button id="decodeImage" disabled>Decode Image</button>
+        <div id="decodedText"></div>
+        <div id="imageError"></div>
+    </section>
+
+    <script>
+        // Utility functions
+        function arrayBufferToBase64(buffer) {
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function generateKey() {
+            const key = await crypto.subtle.generateKey(
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
+            const exportedKey = await crypto.subtle.exportKey('raw', key);
+            return arrayBufferToBase64(exportedKey);
+        }
+
+        async function getCryptoKey(base64Key) {
+            if (!base64Key || atob(base64Key).length !== 32) {
+                throw new Error('Invalid AES-256 key');
+            }
+            const keyBuffer = base64ToArrayBuffer(base64Key);
+            return await crypto.subtle.importKey(
+                'raw',
+                keyBuffer,
+                { name: 'AES-GCM' },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        function compress(data) {
+            return pako.deflate(new Uint8Array(data));
+        }
+
+        function decompress(data) {
+            try {
+                return pako.inflate(new Uint8Array(data));
+            } catch (e) {
+                return new Uint8Array(data); // Fallback if not compressed
+            }
+        }
+
+        // Load or generate key
+        let key = localStorage.getItem('texusKey');
+        if (!key) {
+            generateKey().then(newKey => {
+                key = newKey;
+                localStorage.setItem('texusKey', key);
+                document.getElementById('key').value = key;
+                updateButtonStates();
+            });
+        } else {
+            document.getElementById('key').value = key;
+        }
+
+        // Key management buttons
+        document.getElementById('generateKey').addEventListener('click', async () => {
+            const newKey = await generateKey();
+            document.getElementById('key').value = newKey;
+        });
+
+        document.getElementById('saveKey').addEventListener('click', () => {
+            const newKey = document.getElementById('key').value.trim();
+            if (newKey && atob(newKey).length === 32) {
+                key = newKey;
+                localStorage.setItem('texusKey', key);
+                alert('Key saved!');
+                updateButtonStates();
+            } else {
+                alert('Invalid key: Must be base64-encoded 256-bit (32 bytes) key.');
+            }
+        });
+
+        // Email
+        let email = localStorage.getItem('texusEmail') || '';
+        document.getElementById('email').value = email;
+
+        document.getElementById('saveEmail').addEventListener('click', () => {
+            email = document.getElementById('email').value.trim();
+            localStorage.setItem('texusEmail', email);
+            alert('Email saved!');
+        });
+
+        // QR Generate
+        document.getElementById('generateQR').addEventListener('click', () => {
+            if (!key) {
+                alert('Please save a key first.');
+                return;
+            }
+            const qrText = email ? `${email}|${key}` : key;
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = '';
+            new QRCode(qrDiv, {
+                text: qrText,
+                width: 256,
+                height: 256,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
+
+        // Friends
+        let friends = JSON.parse(localStorage.getItem('texusFriends')) || [];
+        function saveFriends() {
+            localStorage.setItem('texusFriends', JSON.stringify(friends));
+        }
+
+        function renderFriends() {
+            const list = document.getElementById('friendsList');
+            list.innerHTML = '';
+            const recipientSelect = document.getElementById('recipientSelect');
+            const senderSelect = document.getElementById('senderSelect');
+            recipientSelect.innerHTML = '<option value="">Select Recipient (for encryption)</option>';
+            senderSelect.innerHTML = '<option value="">Select Sender (for decoding)</option>';
+            friends.forEach((friend, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${friend.name} (${friend.email})`;
+                const delBtn = document.createElement('button');
+                delBtn.textContent = 'Delete';
+                delBtn.addEventListener('click', () => {
+                    friends.splice(index, 1);
+                    saveFriends();
+                    renderFriends();
+                });
+                li.appendChild(delBtn);
+                list.appendChild(li);
+
+                const optRec = document.createElement('option');
+                optRec.value = friend.key;
+                optRec.textContent = friend.name;
+                recipientSelect.appendChild(optRec);
+
+                const optSen = document.createElement('option');
+                optSen.value = friend.key;
+                optSen.textContent = friend.name;
+                senderSelect.appendChild(optSen);
+            });
+        }
+        renderFriends();
+
+        document.getElementById('addFriend').addEventListener('click', () => {
+            const name = document.getElementById('friendName').value.trim();
+            const femail = document.getElementById('friendEmail').value.trim();
+            const fkey = document.getElementById('friendKey').value.trim();
+            const errorDiv = document.getElementById('friendsError');
+            errorDiv.innerHTML = '';
+            if (!name || !fkey || atob(fkey).length !== 32) {
+                errorDiv.innerHTML = 'Invalid input: Name and valid key required.';
+                return;
+            }
+            friends.push({ name, email: femail, key: fkey });
+            saveFriends();
+            renderFriends();
+            document.getElementById('friendName').value = '';
+            document.getElementById('friendEmail').value = '';
+            document.getElementById('friendKey').value = '';
+        });
+
+        document.getElementById('parseQR').addEventListener('click', () => {
+            const qrText = document.getElementById('qrPaste').value.trim();
+            const errorDiv = document.getElementById('friendsError');
+            errorDiv.innerHTML = '';
+            const parts = qrText.split('|');
+            if (parts.length !== 2 || atob(parts[1]).length !== 32) {
+                errorDiv.innerHTML = 'Invalid QR format or key.';
+                return;
+            }
+            document.getElementById('friendEmail').value = parts[0];
+            document.getElementById('friendKey').value = parts[1];
+            document.getElementById('qrPaste').value = '';
+            alert('QR parsed! Now enter name and add friend.');
+        });
+
+        // Select listeners
+        document.getElementById('recipientSelect').addEventListener('change', (e) => {
+            document.getElementById('recipientKey').value = e.target.value;
+        });
+
+        document.getElementById('senderSelect').addEventListener('change', (e) => {
+            document.getElementById('senderKey').value = e.target.value;
+        });
+
+        // Update button states
+        function updateButtonStates() {
+            const hasKey = !!key;
+            document.getElementById('encryptText').disabled = !hasKey;
+            document.getElementById('decryptText').disabled = !hasKey;
+            document.getElementById('encodeImage').disabled = !hasKey;
+            document.getElementById('decodeImage').disabled = !hasKey;
+        }
+        updateButtonStates();
+
+        // Text Encryption
+        document.getElementById('encryptText').addEventListener('click', async () => {
+            const text = document.getElementById('plainText').value.trim();
+            let encKey = document.getElementById('recipientKey').value.trim();
+            if (!encKey) encKey = key; // Fallback to own if not specified
+            const outputDiv = document.getElementById('textOutput');
+            const errorDiv = document.getElementById('textError');
+            outputDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+
+            if (!text) {
+                errorDiv.innerHTML = 'Please enter text to encrypt.';
+                return;
+            }
+
+            try {
+                const cryptoKey = await getCryptoKey(encKey);
+                const encodedText = new TextEncoder().encode(text);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    cryptoKey,
+                    encodedText
+                );
+                const combined = new Uint8Array(iv.byteLength + encrypted.byteLength);
+                combined.set(iv, 0);
+                combined.set(new Uint8Array(encrypted), iv.byteLength);
+                outputDiv.innerHTML = `Encrypted: ${arrayBufferToBase64(combined)}`;
+            } catch (err) {
+                errorDiv.innerHTML = `Encryption failed: ${err.message}`;
+            }
+        });
+
+        // Text Decryption
+        document.getElementById('decryptText').addEventListener('click', async () => {
+            const encryptedBase64 = document.getElementById('encryptedText').value.trim();
+            const outputDiv = document.getElementById('textOutput');
+            const errorDiv = document.getElementById('textError');
+            outputDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+
+            if (!encryptedBase64) {
+                errorDiv.innerHTML = 'Please enter encrypted text to decrypt.';
+                return;
+            }
+
+            try {
+                const cryptoKey = await getCryptoKey(key);
+                const combined = base64ToArrayBuffer(encryptedBase64);
+                const iv = combined.slice(0, 12);
+                const ciphertext = combined.slice(12);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: new Uint8Array(iv) },
+                    cryptoKey,
+                    new Uint8Array(ciphertext)
+                );
+                const plainText = new TextDecoder().decode(decrypted);
+                outputDiv.innerHTML = `Decrypted: ${plainText}`;
+            } catch (err) {
+                errorDiv.innerHTML = `Decryption failed: ${err.message}. Wrong key or corrupt data?`;
+            }
+        });
+
+        // Image Encoding
+        document.getElementById('encodeImage').addEventListener('click', async () => {
+            const file = document.getElementById('imageInput').files[0];
+            const text = document.getElementById('hideText').value.trim();
+            const canvas = document.getElementById('encodedCanvas');
+            const downloadLink = document.getElementById('downloadEncoded');
+            const errorDiv = document.getElementById('imageError');
+            errorDiv.innerHTML = '';
+
+            if (!file || !text) {
+                errorDiv.innerHTML = 'Please select an image and enter text to hide.';
+                return;
+            }
+
+            try {
+                const cryptoKey = await getCryptoKey(key);
+                const encodedText = new TextEncoder().encode(text);
+                const compressed = compress(encodedText);
+                const iv = crypto.getRandomValues(new Uint8Array(12));
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    cryptoKey,
+                    compressed.buffer
+                );
+                const ciphertext = new Uint8Array(encrypted.slice(0, encrypted.byteLength - 16));
+                const tag = new Uint8Array(encrypted.slice(encrypted.byteLength - 16));
+                const payload = new Uint8Array(iv.byteLength + ciphertext.length + tag.length);
+                payload.set(iv, 0);
+                payload.set(ciphertext, iv.byteLength);
+                payload.set(tag, iv.byteLength + ciphertext.length);
+
+                const bits = [];
+                for (let byte of payload) {
+                    for (let i = 7; i >= 0; i--) {
+                        bits.push((byte >> i) & 1);
+                    }
+                }
+
+                const magicNumber = 0xAB12CD34;
+                const length = payload.length;
+                const header = new Uint32Array([magicNumber, length]);
+                const headerBytes = new Uint8Array(header.buffer);
+                const headerBits = [];
+                for (let byte of headerBytes) {
+                    for (let i = 7; i >= 0; i--) {
+                        headerBits.push((byte >> i) & 1);
+                    }
+                }
+                const allBits = headerBits.concat(bits);
+
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                await new Promise(resolve => img.onload = resolve);
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                if (allBits.length > (data.length / 4) * 3) {
+                    throw new Error('Image too small for the data.');
+                }
+
+                let bitIndex = 0;
+                for (let i = 0; i < data.length && bitIndex < allBits.length; i += 4) {
+                    for (let channel = 0; channel < 3; channel++) {
+                        if (bitIndex < allBits.length) {
+                            data[i + channel] = (data[i + channel] & 0xFE) | allBits[bitIndex++];
+                        }
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                downloadLink.href = canvas.toDataURL('image/png');
+                downloadLink.download = 'encoded_image.png';
+                downloadLink.style.display = 'block';
+                downloadLink.innerText = 'Download Encoded Image';
+            } catch (err) {
+                errorDiv.innerHTML = `Encoding failed: ${err.message}`;
+            }
+        });
+
+        // Image Decoding
+        document.getElementById('decodeImage').addEventListener('click', async () => {
+            const file = document.getElementById('decodeImageInput').files[0];
+            let decKey = document.getElementById('senderKey').value.trim();
+            if (!decKey) decKey = key; // Fallback
+            const outputDiv = document.getElementById('decodedText');
+            const errorDiv = document.getElementById('imageError');
+            outputDiv.innerHTML = '';
+            errorDiv.innerHTML = '';
+
+            if (!file) {
+                errorDiv.innerHTML = 'Please select an image to decode.';
+                return;
+            }
+
+            try {
+                const img = new Image();
+                img.src = URL.createObjectURL(file);
+                await new Promise(resolve => img.onload = resolve);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                const allBits = [];
+                for (let i = 0; i < data.length; i += 4) {
+                    for (let channel = 0; channel < 3; channel++) {
+                        allBits.push(data[i + channel] & 1);
+                    }
+                }
+
+                function bitsToBytes(bits) {
+                    const bytes = [];
+                    for (let i = 0; i < bits.length; i += 8) {
+                        let byte = 0;
+                        for (let j = 0; j < 8; j++) {
+                            if (i + j < bits.length) {
+                                byte |= bits[i + j] << (7 - j);
+                            }
+                        }
+                        bytes.push(byte);
+                    }
+                    return new Uint8Array(bytes);
+                }
+
+                const headerBits = allBits.slice(0, 64);
+                const headerBytes = bitsToBytes(headerBits);
+                const magicNumber = new DataView(headerBytes.buffer).getUint32(0, true);
+                if (magicNumber !== 0xAB12CD34) {
+                    throw new Error('No hidden message or corrupt image.');
+                }
+                const length = new DataView(headerBytes.buffer).getUint32(4, true);
+
+                const payloadBitStart = 64;
+                const payloadBitLength = length * 8;
+                const payloadBits = allBits.slice(payloadBitStart, payloadBitStart + payloadBitLength);
+                const payload = bitsToBytes(payloadBits);
+
+                const cryptoKey = await getCryptoKey(decKey);
+                const iv = payload.slice(0, 12);
+                const ciphertext = payload.slice(12, payload.length - 16);
+                const tag = payload.slice(payload.length - 16);
+                const combinedCiphertext = new Uint8Array(ciphertext.length + tag.length);
+                combinedCiphertext.set(ciphertext, 0);
+                combinedCiphertext.set(tag, ciphertext.length);
+
+                const decryptedCompressed = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv },
+                    cryptoKey,
+                    combinedCiphertext
+                );
+                const decompressed = decompress(decryptedCompressed);
+                const plainText = new TextDecoder().decode(decompressed);
+                outputDiv.innerHTML = `Decoded: ${plainText}`;
+            } catch (err) {
+                errorDiv.innerHTML = `Decoding failed: ${err.message}. Wrong key or no message?`;
+            }
+        });
+    </script>
+
+<script src="https://static.app/js/static.js" type="text/javascript"></script>
+</body>
+</html>

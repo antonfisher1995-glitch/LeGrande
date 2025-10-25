@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoreMind Fitness Analyzer — NASM Full Assessment Suite</title>
+<style>
+  
+body {
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+  margin: 0;
+  padding: 0;
+}
+header {
+  text-align: center;
+  padding: 20px 10px;
+  border-bottom: 1px solid #333;
+}
+h1 { color: #00c853; margin-bottom: 5px; }
+h2 { color: #80cbc4; border-bottom:1px solid #333; padding-bottom:4px; }
+#instructions {
+  text-align: center;
+  font-size: 0.9em;
+  color: #bdbdbd;
+  margin-top: 5px;
+}
+  
+  
+  /* ===== Global Top Nav (forces visibility + white text) ===== */
+#mainNav {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: #0d0d0d;
+  border-bottom: 1px solid #333;
+  padding: 10px 12px;
+  position: relative;           /* change to 'sticky' if you want it to stick */
+  top: 0;
+  z-index: 9999;                /* sits above sections and tabs */
+}
+#mainNav a {
+  color: #ffffff !important;    /* force white text */
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+#mainNav a:hover {
+  background: #ffffff;
+  color: #000000 !important;
+  transition: background 0.15s ease-in-out;
+}
+#tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
+}
+.tab-btn {
+  background: none;
+  color: #ccc;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+}
+.tab-btn.active, .tab-btn:hover {
+  background-color: #00c853;
+  color: #000;
+  font-weight: bold;
+}
+.tab-content {
+  display: none;
+  padding: 20px;
+}
+section {
+  border: 1px solid #333;
+  border-radius: 10px;
+  background-color: #1e1e1e;
+  margin: 20px;
+  padding: 20px;
+}
+label {
+  display: block;
+  margin: 8px 0;
+}
+input[type=number] {
+  width: 80px;
+  margin-left: 5px;
+  background: #222;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 3px 5px;
+}
+button {
+  background-color: #00c853;
+  color: #000;
+  font-weight: bold;
+  padding: 8px 16px;
+  border: none;
+  color: #ccc;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+}
+.tab-btn.active, .tab-btn:hover {
+  background-color: #00c853;
+  color: #000;
+  font-weight: bold;
+}
+.tab-content {
+  display: none;
+  padding: 20px;
+}
+section {
+  border: 1px solid #333;
+  border-radius: 10px;
+  background-color: #1e1e1e;
+  margin: 20px;
+  padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<!-- 🌐 Global Navigation -->
+
+  <a href="index.html">Crypto</a>
+  <a href="powerball.html">Powerball</a>
+  <a href="cannabis.html">Cannabis</a>
+  <a href="Religious.html">Religious</a>
+  <a href="SlotMachine.html">Slots</a>
+  <a href="TexUs.html">TexUs</a>
+  <a href="fittest.html">Fit Test</a>
+<!-- 🌐 Global Navigation (inserted ABOVE the page header) -->
+
+
+<header>
+  <h1>🏋️‍♂️ CoreMind Fitness Analyzer</h1>
+  <p>Interactive analysis and recommendations</p>
+  <div id="instructions">💡 Import a squat video, press play, and check or enter data in each tab.
+
+
+
+</div>
+</header>
+  
+<div id="tabs">
+  <button class="tab-btn active" data-tab="squat">🏋️ Squat</button>
+  <button class="tab-btn" data-tab="posture">🧍‍♂️ Posture</button>
+  <button class="tab-btn" data-tab="performance">💪 Performance</button>
+  <button class="tab-btn" data-tab="cardio">❤️ Cardio</button>
+  <button class="tab-btn" data-tab="flexibility">🧘 Flexibility</button>
+  <button class="tab-btn" data-tab="body">📏 Body Comp</button>
+  <button class="tab-btn" data-tab="summary">🧾 Summary</button>
+</div>
+  <!-- 🏋️ SQUAT SECTION -->
+<section id="squat" class="tab-content" style="display:block">
+  <h2>🏋️ Overhead Squat Assessment</h2>
+  <div style="text-align:center;margin-bottom:10px;">
+    <input type="file" id="videoInput" accept="video/*">
+    <button id="loopToggle">🔁 Loop: Off</button>
+    <video id="assessmentVideo" controls></video>
+  </div>
+
+  <h3>Feet / Ankles</h3>
+  <label><input type="checkbox" value="feet_turn_out" name="feet_turn_out"> Feet turn out <span class="tooltip" title="External rotation of feet during squat">ℹ️</span></label>
+  <label><input type="checkbox" value="feet_flatten" name="feet_flatten"> Feet flatten <span class="tooltip" title="Arches collapse inward">ℹ️</span></label>
+  <div id="rec-feet" class="recommendation"><em>No compensations selected.</em></div>
+
+  <h3>Knees</h3>
+  <label><input type="checkbox" value="knees_in" name="knees_in"> Knees move inward <span class="tooltip" title="Valgus collapse of knees">ℹ️</span></label>
+  <label><input type="checkbox" value="knees_out" name="knees_out"> Knees move outward <span class="tooltip" title="Excessive varus movement">ℹ️</span></label>
+  <div id="rec-knees" class="recommendation"><em>No compensations selected.</em></div>
+
+  <h3>LPHC (Lumbar-Pelvic-Hip Complex)</h3>
+  <label><input type="checkbox" value="forward_lean" name="forward_lean"> Excessive forward lean <span class="tooltip" title="Torso leans excessively forward">ℹ️</span></label>
+  <label><input type="checkbox" value="low_back_arch" name="low_back_arch"> Low back arches <span class="tooltip" title="Anterior pelvic tilt">ℹ️</span></label>
+  <label><input type="checkbox" value="low_back_rounds" name="low_back_rounds"> Low back rounds <span class="tooltip" title="Posterior pelvic tilt">ℹ️</span></label>
+  <div id="rec-lphc" class="recommendation"><em>No compensations selected.</em></div>
+
+  <h3>Shoulders / Arms</h3>
+  <label><input type="checkbox" value="arms_fall_forward" name="arms_fall_forward"> Arms fall forward <span class="tooltip" title="Arms drift in front of ears">ℹ️</span></label>
+  <label><input type="checkbox" value="shoulders_elevate" name="shoulders_elevate"> Shoulders elevate <span class="tooltip" title="Upper traps dominate">ℹ️</span></label>
+  <div id="rec-shoulders" class="recommendation"><em>No compensations selected.</em></div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <button onclick="exportCSV()">📤 Export Results</button>
+    <button onclick="resetAll()">♻️ Reset All</button>
+  </div>
+</section>
+
+<script>
+// --- Video Logic ---
+const video = document.getElementById('assessmentVideo');
+const input = document.getElementById('videoInput');
+const loopBtn = document.getElementById('loopToggle');
+let loopEnabled = false;
+
+input.addEventListener('change', function() {
+  const file = this.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.load();
+  }
+});
+loopBtn.addEventListener('click', () => {
+  loopEnabled = !loopEnabled;
+  video.loop = loopEnabled;
+  loopBtn.textContent = loopEnabled ? "🔁 Loop: On" : "🔁 Loop: Off";
+});
+
+// --- Recommendation Data ---
+const recs = {
+  feet_turn_out: {
+    overactive: "Soleus, Lateral Gastrocnemius, Biceps Femoris (short head)",
+    underactive: "Medial Gastrocnemius, Medial Hamstring, Sartorius, Gracilis, Popliteus",
+    fix: "SMR: Calves, Hamstrings; Stretch calves; Strengthen medial hamstring",
+    tip: "Keep feet straight; strengthen medial stabilizers."
+  },
+  feet_flatten: {
+    overactive: "Peroneals, Lateral Gastrocnemius, Biceps Femoris",
+    underactive: "Anterior Tibialis, Posterior Tibialis, Medial Gastrocnemius",
+    fix: "SMR: Peroneals; Stretch calves; Strengthen posterior tibialis",
+    tip: "Work on arch control using short-foot exercises."
+  },
+  knees_in: {
+    overactive: "Adductors, Biceps Femoris, TFL, Vastus Lateralis",
+    underactive: "Gluteus Medius/Maximus, VMO",
+    fix: "SMR: Adductors, TFL; Strengthen glute med/max and VMO",
+    tip: "Engage your glutes; gently drive knees outward."
+  },
+  knees_out: {
+    overactive: "Piriformis, Biceps Femoris, Gluteus Maximus",
+    underactive: "Adductors, Medial Hamstring, Glute Medius",
+    fix: "SMR: Piriformis; Strengthen adductors and glute medius",
+    tip: "Control outward flare; focus on balanced hip engagement."
+  },
+  forward_lean: {
+    overactive: "Soleus, Gastrocnemius, Hip Flexor Complex, Abs",
+    underactive: "Anterior Tibialis, Glute Maximus, Erector Spinae",
+    fix: "SMR: Calves, Hip Flexors; Strengthen glutes and erectors",
+    tip: "Keep chest tall and core braced; activate glutes to counter lean."
+  },
+  low_back_arch: {
+    overactive: "Hip Flexors, Erector Spinae, Lats",
+    underactive: "Glute Maximus, Hamstrings, Core Stabilizers",
+    fix: "SMR: Hip flexors, lats; Stretch hip flexors; Strengthen glutes and core",
+    tip: "Tuck pelvis slightly; engage abs to stabilize lower back."
+  },
+  low_back_rounds: {
+    overactive: "Hamstrings, Adductor Magnus, Rectus Abdominis",
+    underactive: "Glute Maximus, Erector Spinae, Core",
+    fix: "SMR: Hamstrings; Stretch hamstrings; Strengthen glutes and erectors",
+    tip: "Maintain neutral spine; avoid posterior pelvic tilt."
+  },
+  arms_fall_forward: {
+    overactive: "Lats, Teres Major, Pectoralis Major/Minor",
+    underactive: "Mid/Lower Trapezius, Rhomboids, Rotator Cuff",
+    fix: "SMR: Lats, Chest; Stretch lats/chest; Strengthen mid/lower traps",
+    tip: "Lift chest and retract shoulder blades gently."
+  },
+  shoulders_elevate: {
+    overactive: "Upper Trapezius, Levator Scapulae, SCM",
+    underactive: "Mid/Lower Trapezius, Rotator Cuff",
+    fix: "SMR: Upper traps & levator; Strengthen mid/lower traps",
+    tip: "Relax neck; draw shoulders down and back with control."
+  }
+};
+
+// --- Checkbox Logic ---
+document.addEventListener('change', (e) => {
+  if (!e.target.matches('#squat input[type=checkbox]')) return;
+  const parent = e.target.closest('section');
+  updateRecommendations(parent);
+});
+function updateRecommendations(sectionEl) {
+  const secId = sectionEl.id;
+  const recDiv = sectionEl.querySelector('#rec-' + (secId==='squat'?'feet':secId));
+  // Build per-group display
+  sectionEl.querySelectorAll('.recommendation').forEach(r=>r.innerHTML='<em>No compensations selected.</em>');
+  sectionEl.querySelectorAll('input:checked').forEach(cb=>{
+    const data = recs[cb.value];
+    const block = cb.closest('h3') ? cb.closest('h3').nextElementSibling : sectionEl.querySelector('#rec-feet');
+    if (data && block) {
+      if (block.innerHTML.includes('No compensations')) block.innerHTML='';
+      block.innerHTML += `<p><strong>${cb.parentNode.textContent.trim()}</strong><br>
+      <b>Overactive:</b> ${data.overactive}<br>
+      <b>Underactive:</b> ${data.underactive}<br>
+      <b>Corrective:</b> ${data.fix}<br>
+      <b>Tip:</b> ${data.tip}</p>`;
+      block.classList.add('visible');
+    }
+  });
+}
+</script>
+  <!-- 🧍‍♂️ POSTURE SECTION -->
+<section id="posture" class="tab-content" style="display:none">
+  <h2>🧍‍♂️ Posture Assessment</h2>
+
+  <label><input type="checkbox" name="head_forward"> Head Forward 
+    <span class="tooltip" title="Neck protrudes; indicates weak deep cervical flexors.">ℹ️</span></label>
+  <label><input type="checkbox" name="rounded_shoulders"> Rounded Shoulders 
+    <span class="tooltip" title="Pecs tight, mid-back weak.">ℹ️</span></label>
+  <label><input type="checkbox" name="pelvic_tilt"> Anterior Pelvic Tilt 
+    <span class="tooltip" title="Hip flexors tight, glutes & abs weak.">ℹ️</span></label>
+  <label><input type="checkbox" name="asymmetry"> Lateral Shift / Asymmetry 
+    <span class="tooltip" title="One shoulder/hip higher than other.">ℹ️</span></label>
+
+  <div class="recommendation visible" id="rec-posture">
+    <em>Select any compensation to see posture recommendations.</em>
+  </div>
+</section>
+
+<!-- 💪 PERFORMANCE SECTION -->
+<section id="performance" class="tab-content" style="display:none">
+  <h2>💪 Performance Tests</h2>
+
+  <label>Push-Up Test 
+    <input type="number" name="pushups" min="0" step="1" placeholder="Reps">
+    <span class="tooltip" title="Number of full push-ups completed with proper form.">ℹ️</span>
+  </label>
+
+  <label><input type="checkbox" name="balance_left"> Single-Leg Balance – Left  
+    <span class="tooltip" title="Loss of balance or wobble on left leg.">ℹ️</span></label>
+  <label><input type="checkbox" name="balance_right"> Single-Leg Balance – Right  
+    <span class="tooltip" title="Loss of balance or wobble on right leg.">ℹ️</span></label>
+
+  <label><input type="checkbox" name="shoulder_mobility"> Overhead Shoulder Mobility  
+    <span class="tooltip" title="Arms fail to reach parallel with ears or asymmetry noted.">ℹ️</span></label>
+
+  <label><input type="checkbox" name="lunge_control"> Step-Up / Lunge Control  
+    <span class="tooltip" title="Knee caves or hip drops during movement.">ℹ️</span></label>
+
+  <div id="rec-performance" class="recommendation visible">
+    <em>Enter your push-up reps or select issues to view performance feedback.</em>
+  </div>
+</section>
+
+<script>
+// === POSTURE & PERFORMANCE LOGIC ===
+document.addEventListener("change", e=>{
+  if(e.target.closest("#posture")){
+    const out=document.getElementById("rec-posture");
+    let html="";
+    if(document.querySelector("[name=head_forward]").checked)
+      html+="<p><b>Head Forward:</b> Strengthen deep neck flexors; stretch upper traps.</p>";
+    if(document.querySelector("[name=rounded_shoulders]").checked)
+      html+="<p><b>Rounded Shoulders:</b> Stretch chest; strengthen mid/lower traps.</p>";
+    if(document.querySelector("[name=pelvic_tilt]").checked)
+      html+="<p><b>Anterior Pelvic Tilt:</b> Stretch hip flexors; strengthen glutes & core.</p>";
+    if(document.querySelector("[name=asymmetry]").checked)
+      html+="<p><b>Asymmetry:</b> Perform unilateral strength work; focus on alignment.</p>";
+    out.innerHTML=html||"<em>No posture deviations selected.</em>";
+  }
+
+  if(e.target.closest("#performance")){
+    const out=document.getElementById("rec-performance");
+    const reps=parseInt(document.querySelector("[name=pushups]").value)||0;
+    let html="";
+    if(reps>0){
+      let grade=reps>=40?"Excellent":reps>=25?"Good":reps>=15?"Fair":"Needs Improvement";
+      html+=`<p><b>Push-Up Score:</b> ${reps} reps → ${grade}. Keep form tight and core braced.</p>`;
+    }
+    if(document.querySelector("[name=balance_left]").checked||document.querySelector("[name=balance_right]").checked)
+      html+="<p><b>Balance:</b> Practice single-leg stability drills and hip control.</p>";
+    if(document.querySelector("[name=shoulder_mobility]").checked)
+      html+="<p><b>Shoulder Mobility:</b> Add wall slides / foam-roller chest stretch.</p>";
+    if(document.querySelector("[name=lunge_control]").checked)
+      html+="<p><b>Lunge Control:</b> Focus on knee tracking over toes; engage glutes.</p>";
+    out.innerHTML=html||"<em>No performance data entered.</em>";
+  }
+});
+</script>
+  <!-- ❤️ CARDIO SECTION -->
+<section id="cardio" class="tab-content" style="display:none">
+  <h2>❤️ Cardiorespiratory Fitness</h2>
+
+  <label>Resting Heart Rate (bpm)
+    <input type="number" name="rest_hr" min="30" max="200" placeholder="e.g. 70">
+    <span class="tooltip" title="Heart rate at rest before exercise.">ℹ️</span>
+  </label>
+
+  <label>1-Minute Recovery Heart Rate (bpm)
+    <input type="number" name="rec_hr" min="30" max="200" placeholder="e.g. 110">
+    <span class="tooltip" title="Heart rate one minute after stopping exercise.">ℹ️</span>
+  </label>
+
+  <div id="rec-cardio" class="recommendation visible">
+    <em>Enter resting and recovery heart rate to assess recovery fitness.</em>
+  </div>
+</section>
+
+<!-- 🧘 FLEXIBILITY SECTION -->
+<section id="flexibility" class="tab-content" style="display:none">
+  <h2>🧘 Flexibility & Mobility</h2>
+
+  <label><input type="checkbox" name="ham_tight"> Hamstring Tightness
+    <span class="tooltip" title="Limited forward reach or tension behind legs.">ℹ️</span></label>
+
+  <label><input type="checkbox" name="hip_tight"> Hip Flexor Tightness
+    <span class="tooltip" title="Anterior hip tension; difficulty extending leg backward.">ℹ️</span></label>
+
+  <label><input type="checkbox" name="shoulder_tight"> Shoulder Restriction
+    <span class="tooltip" title="Limited overhead or behind-back reach.">ℹ️</span></label>
+
+  <div id="rec-flex" class="recommendation visible">
+    <em>Select any limitation to see flexibility suggestions.</em>
+  </div>
+</section>
+
+<script>
+// === CARDIO & FLEXIBILITY LOGIC ===
+document.addEventListener("input", e=>{
+  // Cardio interpretation
+  if(e.target.closest("#cardio")){
+    const rest = parseInt(document.querySelector("[name=rest_hr]").value)||0;
+    const rec  = parseInt(document.querySelector("[name=rec_hr]").value)||0;
+    const out  = document.getElementById("rec-cardio");
+    let html="";
+    if(rest && rec){
+      const diff = rec - rest;
+      let grade = diff<=10?"Excellent":diff<=20?"Good":diff<=30?"Fair":"Needs Improvement";
+      html = `<p><b>Recovery Fitness:</b> Rest ${rest} bpm → Recovery ${rec} bpm (Δ ${diff}) = ${grade}.  
+      ${grade==="Needs Improvement"?"Work on aerobic endurance via interval training."
+      :"Great recovery — keep conditioning steady-state and interval mix!"}</p>`;
+    }
+    out.innerHTML = html || "<em>Enter both values to calculate recovery fitness.</em>";
+  }
+});
+
+// Flexibility toggles
+document.addEventListener("change", e=>{
+  if(e.target.closest("#flexibility")){
+    const out=document.getElementById("rec-flex");
+    let html="";
+    if(document.querySelector("[name=ham_tight]").checked)
+      html+="<p><b>Hamstrings:</b> Add PNF or static stretching post-workout.</p>";
+    if(document.querySelector("[name=hip_tight]").checked)
+      html+="<p><b>Hip Flexors:</b> Incorporate half-kneeling stretch and glute activation.</p>";
+    if(document.querySelector("[name=shoulder_tight]").checked)
+      html+="<p><b>Shoulders:</b> Try wall slides and foam-roller lat release.</p>";
+    out.innerHTML = html || "<em>No limitations selected.</em>";
+  }
+});
+</script>
+  <!-- 📏 BODY COMPOSITION SECTION -->
+<section id="body" class="tab-content" style="display:none">
+  <h2>📏 Body Composition</h2>
+
+  <h3>Tape Measurements (cm)</h3>
+  <label>Neck <input type="number" name="neck" step="0.1">ℹ️</label>
+  <label>Chest <input type="number" name="chest" step="0.1">ℹ️</label>
+  <label>Waist <input type="number" name="waist" step="0.1">ℹ️</label>
+  <label>Hips <input type="number" name="hips" step="0.1">ℹ️</label>
+  <label>Thigh <input type="number" name="thigh" step="0.1">ℹ️</label>
+  <label>Calf <input type="number" name="calf" step="0.1">ℹ️</label>
+  <label>Arm <input type="number" name="arm" step="0.1">ℹ️</label>
+
+  <h3>7-Site Skinfolds (mm)</h3>
+  <label>Triceps <input type="number" name="triceps" step="0.1">ℹ️</label>
+  <label>Subscapular <input type="number" name="subscapular" step="0.1">ℹ️</label>
+  <label>Chest <input type="number" name="chest_fold" step="0.1">ℹ️</label>
+  <label>Abdomen <input type="number" name="abdomen" step="0.1">ℹ️</label>
+  <label>Suprailiac <input type="number" name="suprailiac" step="0.1">ℹ️</label>
+  <label>Thigh <input type="number" name="thigh_fold" step="0.1">ℹ️</label>
+  <label>Calf (medial) <input type="number" name="calf_fold" step="0.1">ℹ️</label>
+
+  <h3>Results</h3>
+  <p><button onclick="calcBodyComp()">🧮 Calculate Body Fat %</button></p>
+  <div id="body-results" class="recommendation visible"><em>Enter all 7 skinfolds then tap calculate.</em></div>
+</section>
+
+<script>
+// === BODY COMPOSITION LOGIC ===
+function calcBodyComp(){
+  const names=["triceps","subscapular","chest_fold","abdomen","suprailiac","thigh_fold","calf_fold"];
+  let sum=0, count=0;
+  names.forEach(n=>{
+    const val=parseFloat(document.querySelector(`[name='${n}']`).value)||0;
+    if(val>0){ sum+=val; count++; }
+  });
+  const out=document.getElementById("body-results");
+  if(count<4){ out.innerHTML="<em>Please enter at least 4 skinfold sites for accuracy.</em>"; return; }
+
+  const meanAge=30; // age factor placeholder
+  // Simplified Jackson–Pollock: Body density then BF%
+  const density = 1.112 - 0.00043499*sum + 0.00000055*(sum*sum) - 0.00028826*meanAge;
+  const bf = ((495 / density) - 450).toFixed(1);
+
+  out.innerHTML = `<p><b>Sum of Skinfolds:</b> ${sum.toFixed(1)} mm  
+  <br><b>Estimated Body Fat %:</b> ${bf}%</p>
+  <p>${bf<10?"Lean athletic physique — excellent conditioning.":
+            bf<18?"Healthy range; maintain balanced nutrition.":
+            bf<25?"Moderate body fat; consider tightening nutrition and consistency.":
+            "Above recommended range; focus on sustainable activity and diet."}</p>`;
+}
+</script>
+  <!-- 🧾 SUMMARY SECTION -->
+<section id="summary" class="tab-content" style="display:none">
+  <h2>🧾 Summary Report</h2>
+  <div id="summaryBox"><em>Tap "Generate Summary" to view your complete fitness overview.</em></div>
+  <div style="margin-top:15px;text-align:center;">
+    <button onclick="generateSummary()">Summary</button>
+    <button onclick="exportCSV()">📤 CSV</button>
+    <button onclick="window.print()">PDF</button>
+    <button onclick="resetAll()">♻️ Reset</button>
+  </div>
+</section>
+
+<script>
+// === GLOBAL FUNCTIONS ===
+
+// ---- AUTOSAVE / RESTORE ----
+window.addEventListener("load",()=>{
+  const saved = localStorage.getItem("coremind_v3full");
+  if(saved){
+    const data = JSON.parse(saved);
+    Object.keys(data).forEach(k=>{
+      const el=document.querySelector(`[name='${k}']`);
+      if(el){
+        if(el.type==="checkbox") el.checked=data[k];
+        else el.value=data[k];
+      }
+    });
+  }
+});
+document.addEventListener("input", ()=>{
+  const data={};
+  document.querySelectorAll("input").forEach(el=>{
+    if(el.name) data[el.name]=el.type==="checkbox"?el.checked:el.value;
+  });
+  localStorage.setItem("coremind_v3full",JSON.stringify(data));
+});
+
+// ---- RESET ALL ----
+function resetAll(){
+  if(!confirm("Clear all data and restart assessment?")) return;
+  document.querySelectorAll("input").forEach(el=>{
+    if(el.type==="checkbox") el.checked=false; else el.value="";
+  });
+  localStorage.removeItem("coremind_v3full");
+  document.querySelectorAll(".recommendation").forEach(r=>r.innerHTML="<em>Reset.</em>");
+  document.getElementById("summaryBox").innerHTML="<em>Data cleared.</em>";
+}
+
+// ---- TAB SWITCH ----
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(sec=>sec.style.display="none");
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).style.display="block";
+  });
+});
+
+// ---- GENERATE SUMMARY ----
+function generateSummary(){
+  const data=JSON.parse(localStorage.getItem("coremind_v3full")||"{}");
+  let txt="🏋️ CoreMind Fitness Analyzer Summary\n\n";
+  const order=["feet_turn_out","feet_flatten","knees_in","knees_out","forward_lean","low_back_arch",
+               "arms_fall_forward","shoulders_elevate","head_forward","rounded_shoulders",
+               "pelvic_tilt","asymmetry","pushups","balance_left","balance_right","lunge_control",
+               "rest_hr","rec_hr","ham_tight","hip_tight","shoulder_tight","waist","hips","bf"];
+  Object.entries(data).forEach(([k,v])=>{
+    if(v!=="" && v!==false)
+      txt+=`${k.replaceAll("_"," ")}: ${v===true?"Yes":v}\n`;
+  });
+
+  txt += "\nOverall Summary:\n";
+  txt += "You’ve made strong progress identifying key movement and balance patterns.\n";
+  txt += "Keep reinforcing stability, mobility, and consistent conditioning.\n";
+  txt += "Remember: small improvements every week compound over time.\n\n";
+  txt += "💪 Keep moving, stay consistent — your future self will thank you.";
+
+  document.getElementById("summaryBox").textContent=txt;
+}
+
+// ---- CSV EXPORT ----
+function exportCSV(){
+  const data=JSON.parse(localStorage.getItem("coremind_v3full")||"{}");
+  const rows=[["Field","Value"]];
+  for(const [k,v] of Object.entries(data))
+    rows.push([k,v===true?"Yes":v===false?"No":v]);
+  const csv=rows.map(r=>r.join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  const now=new Date().toISOString().slice(0,16).replace(/[T:]/g,"-");
+  a.download=`fitness_assessment_${now}.csv`;
+  a.click();
+}
+</script>
+
+
+<script src="https://static.app/js/static.js" type="text/javascript"></script>
+
+  
+  
+  
+</body>
+</html>

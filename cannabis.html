@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 Purple Cannabis Finder — Static Site (CSP-safe)</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>🌿 Purple Cannabis Finder — Static Site</h1>
+  
+   <nav>
+    <a href="index.html">Cyrpto</a>
+    
+    <a href="powerball.html">Powerball</a>
+    <a href="cannabis.html">Cannabis </a>
+        
+           <a href="Religious.html">Religious</a>
+     
+       <a href="SlotMachine.html">Slots</a>
+      <a href="TexUs.html">TexUs</a>
+     <a href="fittest.html">Fit Test</a>
+  </nav>
+  <div class="search-container">
+    <input type="text" id="searchBox" placeholder="Search strain, effect, flavor, etc." autocomplete="off">
+    <ul id="suggestions"></ul>
+  </div>
+</header>
+
+<noscript style="display:block;text-align:center;padding:16px;color:#f88;">
+  JavaScript is required for search. Please enable JS.
+</noscript>
+
+<div class="results" id="results"></div>
+
+<footer>
+  <p>© 2025 Cannabis Finder — Static Dataset</p>
+</footer>
+
+<!-- Load data first, then app -->
+<script src="cannabis-data.js" defer></script>
+<script src="app.js" defer></script>
+
+<script src="https://static.app/js/static.js" type="text/javascript"></script>
+</body>
+</html>
