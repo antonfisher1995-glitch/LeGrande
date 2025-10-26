@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Manager</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    background: linear-gradient(120deg, #0A2463, #247BA0);
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  }
+  input, textarea, button {
+    width: 90%;
+    margin: 8px auto;
+    display: block;
+    border-radius: 10px;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+  }
+  button {
+    background: #2EC4B6;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  button:hover { background: #1fa197; }
+  .event-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    margin: 10px;
+    padding: 12px;
+    text-align: left;
+  }
+  h1 { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>📅 My Events</h1>
+
+    <input id="title" list="titleList" placeholder="Event Title" required>
+    <datalist id="titleList"></datalist>
+
+    <input id="date" type="date" required>
+    <input id="location" list="locationList" placeholder="Location" required>
+    <datalist id="locationList"></datalist>
+
+    <textarea id="notes" placeholder="Description..." required></textarea>
+
+    <button id="saveBtn">💾 Save Event</button>
+    <button id="shareBtn">📤 Share Latest Event</button>
+
+    <div id="events"></div>
+  </div>
+
+<script>
+let events = JSON.parse(localStorage.getItem('events') || '[]');
+render();
+populateLists();
+
+// --- Save Event ---
+document.getElementById('saveBtn').onclick = () => {
+  const e = {
+    title: title.value.trim(),
+    date: date.value,
+    location: location.value.trim(),
+    notes: notes.value.trim()
+  };
+  if (!e.title || !e.date) { alert("Please enter a title and date."); return; }
+  events.push(e);
+  localStorage.setItem('events', JSON.stringify(events));
+  render();
+  populateLists();
+  title.value = date.value = location.value = notes.value = '';
+};
+
+// --- Render Events ---
+function render() {
+  const eventsDiv = document.getElementById('events');
+  eventsDiv.innerHTML = '';
+  events.forEach((e, i) => {
+    const div = document.createElement('div');
+    div.className = 'event-card';
+    div.innerHTML = `
+      <h3>${e.title}</h3>
+      <p>📅 ${e.date}</p>
+      <p>📍 ${e.location}</p>
+      <p>📝 ${e.notes}</p>
+      <button onclick="deleteEvent(${i})">🗑 Delete</button>
+    `;
+    eventsDiv.appendChild(div);
+  });
+}
+
+// --- Delete Event ---
+function deleteEvent(i) {
+  events.splice(i,1);
+  localStorage.setItem('events', JSON.stringify(events));
+  render();
+  populateLists();
+}
+
+// --- Populate dropdown suggestions ---
+function populateLists() {
+  const titles = [...new Set(events.map(e => e.title))];
+  const locs = [...new Set(events.map(e => e.location))];
+  document.getElementById('titleList').innerHTML =
+    titles.map(t => `<option value="${t}">`).join('');
+  document.getElementById('locationList').innerHTML =
+    locs.map(l => `<option value="${l}">`).join('');
+}
+
+// --- Share Latest Event ---
+document.getElementById('shareBtn').onclick = async () => {
+  if (!events.length) return alert("No events to share yet.");
+  const e = events[events.length - 1];
+  const text = `📅 ${e.title}\n📆 ${e.date}\n📍 ${e.location}\n📝 ${e.notes}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: e.title, text });
+    } catch(err) {
+      console.warn("Share cancelled or failed", err);
+    }
+  } else {
+    await navigator.clipboard.writeText(text);
+    alert("Copied event to clipboard (sharing not supported).");
+  }
+};
+</script>
+</body>
+</html>
