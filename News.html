@@ -1,1 +1,237 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Global News Hub (Offline)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    margin: 0;
+  }
+  header {
+    background: #222;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .controls {
+    text-align: center;
+    margin: 10px 0;
+  }
+  select {
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: white;
+  }
+  #news-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+  }
+  .article {
+    background: #1c1c1c;
+    border-radius: 10px;
+    margin: 10px;
+    width: 300px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+  }
+  .article img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+  }
+  .content {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .content h3 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #4fc3f7;
+  }
+  .content p {
+    flex-grow: 1;
+    color: #ccc;
+    font-size: 0.9em;
+    margin: 10px 0;
+  }
+  .content a {
+    color: #03a9f4;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>🗞 Global News Hub (Offline)</header>
+
+<div class="controls">
+  <label for="category">Category:</label>
+  <select id="category">
+    <option value="general">General</option>
+    <option value="business">Business</option>
+    <option value="technology">Technology</option>
+    <option value="sports">Sports</option>
+    <option value="entertainment">Entertainment</option>
+    <option value="health">Health</option>
+    <option value="science">Science</option>
+  </select>
+</div>
+
+<div id="news-container"></div>
+
+<script>
+const offlineNews = {
+  general: [
+    {
+      title: "World Leaders Gather to Discuss Global Climate Goals",
+      description: "Representatives from over 100 countries met today to reaffirm their commitment to reducing carbon emissions by 2035.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/climate/600/400"
+    },
+    {
+      title: "New Study Highlights Importance of Sleep",
+      description: "Scientists reveal that consistent sleep schedules improve mental clarity and reduce long-term health risks.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/sleep/600/400"
+    }
+  ],
+  business: [
+    {
+      title: "Tech Stocks Surge as Market Rallies",
+      description: "Investors are optimistic as the tech sector shows strong quarterly results across major companies.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/business/600/400"
+    },
+    {
+      title: "Small Businesses Embrace AI for Efficiency",
+      description: "Artificial intelligence tools are helping small business owners automate tasks and improve customer engagement.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/ai/600/400"
+    }
+  ],
+  technology: [
+    {
+      title: "New Smartphone Features Built-In AI Assistant",
+      description: "The latest device integrates advanced on-device language models to summarize texts and suggest replies offline.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/smartphone/600/400"
+    },
+    {
+      title: "Quantum Computing Breakthrough Achieved",
+      description: "Researchers have demonstrated stable qubits that could revolutionize data processing speed.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/quantum/600/400"
+    }
+  ],
+  sports: [
+    {
+      title: "Local Team Wins Championship in Stunning Finale",
+      description: "An unexpected comeback in the final minutes secured the victory and a place in history.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/sports/600/400"
+    },
+    {
+      title: "Olympic Committee Announces New 2030 Events",
+      description: "The lineup now includes AI-assisted analytics competitions and mixed-gender relay races.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/olympics/600/400"
+    }
+  ],
+  entertainment: [
+    {
+      title: "Blockbuster Movie Breaks Global Box Office Records",
+      description: "Critics and fans alike praise the film’s innovative storytelling and visual effects.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/movie/600/400"
+    },
+    {
+      title: "Music Festival Returns After Hiatus",
+      description: "Artists from around the world gather for a weekend of live performances and cultural exchange.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/music/600/400"
+    }
+  ],
+  health: [
+    {
+      title: "Breakthrough in Diabetes Research",
+      description: "A new treatment shows promise in reversing insulin resistance in early trials.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/diabetes/600/400"
+    },
+    {
+      title: "Fitness Experts Recommend Micro Workouts",
+      description: "Short, intense exercise sessions can deliver the same benefits as longer routines, experts say.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/fitness/600/400"
+    }
+  ],
+  science: [
+    {
+      title: "NASA Confirms Water on Mars Polar Ice Caps",
+      description: "New satellite data shows traces of liquid water beneath the Martian surface, sparking excitement among scientists.",
+      url: "#",
+      urlToImage: "https://picsum.photos/seed/mars/600/400"
+    },
+    {
+      title: "Deep Sea Discovery Reveals Unknown Species",
+      description: "Marine biologists have found over 50 new species thriving in extreme deep-ocean environments.",
+      url: "https://google.com",
+      urlToImage: "https://picsum.photos/seed/ocean/600/400"
+    }
+  ]
+};
+
+const categorySelect = document.getElementById("category");
+const newsContainer = document.getElementById("news-container");
+
+function displayNews(category = "general") {
+  const articles = offlineNews[category] || [];
+  newsContainer.innerHTML = "";
+  if (articles.length === 0) {
+    newsContainer.innerHTML = "<p>No articles found.</p>";
+    return;
+  }
+
+  articles.forEach(article => {
+    const div = document.createElement("div");
+    div.classList.add("article");
+    div.innerHTML = `
+      <img src="${article.urlToImage}" alt="News Image">
+      <div class="content">
+        <h3>${article.title}</h3>
+        <p>${article.description}</p>
+        <a href="${article.url}" target="_blank">Read More →</a>
+      </div>
+    `;
+    newsContainer.appendChild(div);
+  });
+}
+
+// Event listener
+categorySelect.addEventListener("change", () => {
+  displayNews(categorySelect.value);
+});
+
+// Initial load
+displayNews();
+</script>
+</body>
+</html>
