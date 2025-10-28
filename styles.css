@@ -69,4 +69,11 @@ ul#suggestions li:hover { background: rgba(168, 95, 247, 0.22); }
   margin-bottom: 6px;
 }
 .property { margin: 4px 0; color: #ccc; }
-footer { text-align:center; padding: 24px; color: #777; }
+
+footer {
+         border-top: 1px solid rgba(255,255,255,0.1);
+         text-align: center; padding: 1.5em; color: #8b949e;
+         font-size: 0.9em; background: rgba(15,20,40,0.85);
+         }
+         footer a {color: #00d4ff; text-decoration: none;}
+        
